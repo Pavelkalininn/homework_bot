@@ -107,6 +107,9 @@ def main():
             if response:
                 for homework in response:
                     send_message(bot, parse_status(homework))
+                    logger.info(
+                        "Сообщение об изменении статуса проверки работы "
+                        "отправлено")
 
             current_timestamp = int(time.time())
             time.sleep(RETRY_TIME)
@@ -117,8 +120,8 @@ def main():
             logger.error(message, exc_info=True)
             time.sleep(RETRY_TIME)
         else:
-            logger.info(
-                "Сообщение об изменении статуса проверки работы отправлено")
+            logger.debug(
+                "Цикл проверки статуса домашней работы завершен без ошибок")
 
 
 if __name__ == '__main__':
