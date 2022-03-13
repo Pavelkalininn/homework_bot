@@ -63,12 +63,10 @@ def get_api_answer(current_timestamp):
 def check_response(response):
     """Извлекает из словаря ответа сервера список домашних работ."""
     if not isinstance(response, dict):
-        raise TypeError(
-            f'Ответ response не в формате dict')
+        raise TypeError('Ответ response не в формате dict')
     homeworks = response.get('homeworks')
     if not isinstance(homeworks, list):
-        raise BotException(
-            f'По ключу Homeworks пришел не список')
+        raise BotException('По ключу Homeworks пришел не список')
     return homeworks
 
 
