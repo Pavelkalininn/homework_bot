@@ -78,7 +78,8 @@ def check_response(response):
     homeworks = response.get('homeworks')
     if not isinstance(homeworks, list):
         raise BotException('По ключу Homeworks пришел не список')
-    return homeworks[0]
+    if homeworks:
+        return homeworks[0]
 
 
 def parse_status(homework):
