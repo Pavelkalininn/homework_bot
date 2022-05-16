@@ -62,7 +62,9 @@ def get_api_answer(current_timestamp):
         homework_statuses = requests.get(
             ENDPOINT, headers=headers, params=params)
         if homework_statuses.status_code != HTTPStatus.OK:
-            raise BotException("Пришел некорректный ответ от сервера")
+            raise BotException(
+                f"Пришел некорректный ответ от сервера:"
+                f" status_code - {homework_statuses.status_code}")
         else:
             return homework_statuses.json()
     except RequestException as error:
@@ -111,7 +113,6 @@ def main():
 
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
-
 
     while True:
         try:
