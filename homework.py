@@ -3,10 +3,13 @@ import os
 import sys
 import time
 from http import HTTPStatus
+from json import JSONDecodeError
 
 import requests
 import telegram
 from dotenv import load_dotenv
+from requests import RequestException
+from telegram import TelegramError
 
 from exceptions import BotException
 
@@ -32,23 +35,33 @@ HOMEWORK_STATUSES = {
 
 def send_message(bot, message):
     """Отправляет сообщение в телеграм."""
-    bot.send_message(
-        chat_id=TELEGRAM_CHAT_ID,
-        text=message
-    )
+    try:
+        bot.send_message(
+            chat_id=TELEGRAM_CHAT_ID,
+            text=message
+        )
+    except TelegramError as error:
+        logger.error(error, exc_info=True)
 
 
 def get_api_answer(current_timestamp):
     """Возвращает API ответ от Яндекс Практикум."""
-    timestamp = current_timestamp or int(time.time())
-    params = {'from_date': timestamp}
-    headers = {'Authorization': f'OAuth {os.getenv("PRAKTIKUM_TOKEN")}'}
-    homework_statuses = requests.get(
-        ENDPOINT, headers=headers, params=params)
-    if homework_statuses.status_code != HTTPStatus.OK:
-        raise BotException("Пришел некорректный ответ от сервера")
-    else:
-        return homework_statuses.json()
+    try:
+        timestamp = current_timestamp or int(time.time())
+        params = {'from_date': timestamp}
+        headers = HEADERS
+        homework_statuses = requests.get(
+            ENDPOINT, headers=headers, params=params)
+        if homework_statuses.status_code != HTTPStatus.OK:
+            raise BotException(
+                f"Пришел некорректный ответ от сервера:"
+                f" status_code - {homework_statuses.status_code}")
+        else:
+            return homework_statuses.json()
+    except RequestException as error:
+        logger.error(error, exc_info=True)
+    except JSONDecodeError as error:
+        logger.error(error, exc_info=True)
 
 
 def check_response(response):
@@ -58,7 +71,8 @@ def check_response(response):
     homeworks = response.get('homeworks')
     if not isinstance(homeworks, list):
         raise BotException('По ключу Homeworks пришел не список')
-    return homeworks
+    if homeworks:
+        return homeworks[0]
 
 
 def parse_status(homework):
@@ -96,12 +110,10 @@ def main():
             response = check_response(get_api_answer(
                 current_timestamp))
             if response:
-                for homework in response:
-                    send_message(bot, parse_status(homework))
-                    logger.info(
-                        "Сообщение об изменении статуса проверки работы "
-                        "отправлено")
-
+                send_message(bot, parse_status(response))
+                logger.info(
+                    "Сообщение об изменении статуса проверки работы "
+                    "отправлено")
             current_timestamp = int(time.time())
             time.sleep(RETRY_TIME)
 
