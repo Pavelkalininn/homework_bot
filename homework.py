@@ -29,15 +29,6 @@ HOMEWORK_STATUSES = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler(sys.stdout)
-logger.addHandler(handler)
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-handler.setFormatter(formatter)
-
 
 def send_message(bot, message):
     """Отправляет сообщение в телеграм."""
@@ -103,7 +94,7 @@ def main():
     while True:
         try:
             response = check_response(get_api_answer(
-                current_timestamp - RETRY_TIME - RETRY_TIME))
+                current_timestamp))
             if response:
                 for homework in response:
                     send_message(bot, parse_status(homework))
@@ -125,4 +116,12 @@ def main():
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler(sys.stdout)
+    logger.addHandler(handler)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    handler.setFormatter(formatter)
     main()
